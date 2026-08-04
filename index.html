@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EASY SKINS</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 {
+            color: #f5a623;
+            font-size: 32px;
+            font-weight: 900;
+            text-shadow: 0 0 30px rgba(245, 166, 35, 0.3);
+            letter-spacing: 2px;
+        }
+        .header .sub { color: #888; font-size: 12px; margin-top: 4px; letter-spacing: 4px; }
+        .balance {
+            font-size: 22px;
+            background: #1a1a2e;
+            padding: 12px 30px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: 1px solid #f5a623;
+            box-shadow: 0 0 25px rgba(245, 166, 35, 0.08);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .balance span { color: #f5a623; font-weight: bold; }
+        .case-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .case-btn {
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 14px;
+            padding: 18px 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .case-btn:active { transform: scale(0.94); border-color: #f5a623; }
+        .case-btn .name { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+        .case-btn .price { color: #f5a623; font-size: 13px; font-weight: 600; }
+        .case-btn .rarity-bar { height: 3px; width: 100%; background: #2a2a4a; margin-top: 10px; border-radius: 2px; }
+        .case-btn .rarity-bar .fill { height: 100%; border-radius: 2px; background: #f5a623; width: 0%; }
+        .result {
+            margin-top: 20px;
+            background: #1a1a2e;
+            padding: 24px 20px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #2a2a4a;
+            display: none;
+            animation: fadeUp 0.4s ease;
+        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .result .item { font-size: 22px; font-weight: bold; margin-bottom: 6px; }
+        .result .quality { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
+        .result .value { color: #f5a623; font-size: 18px; font-weight: bold; }
+        .result .sub-text { color: #777; font-size: 12px; margin-top: 8px; }
+        .quality-consumer { color: #8a8a8a; }
+        .quality-industrial { color: #5b8cdf; }
+        .quality-mil-spec { color: #4caf50; }
+        .quality-restricted { color: #9b59b6; }
+        .quality-classified { color: #e74c3c; }
+        .quality-covert { color: #f1c40f; }
+        .back-btn {
+            margin-top: 16px;
+            background: #2a2a4a;
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            width: 100%;
+            max-width: 400px;
+        }
+        .back-btn:active { transform: scale(0.96); background: #3a3a5a; }
+        .footer { margin-top: 30px; color: #333; font-size: 11px; letter-spacing: 1px; }
+        .save-status { color: #4caf50; font-size: 11px; margin-top: 10px; opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🔫 EASY SKINS</h1>
+        <div class="sub">CS2 CASE OPENER</div>
+    </div>
+
+    <div class="balance">💰 Баланс: <span id="balance">1000</span> монет</div>
+    
+    <div class="case-grid" id="caseGrid"></div>
+    
+    <div class="result" id="result">
+        <div class="item" id="resultItem">—</div>
+        <div class="quality" id="resultQuality">—</div>
+        <div class="value" id="resultValue">—</div>
+        <div class="sub-text" id="resultSub">✨ предмет добавлен в инвентарь</div>
+    </div>
+
+    <button class="back-btn" onclick="backToMenu()" id="backBtn" style="display:none;">🔙 Назад к кейсам</button>
+    
+    <div class="save-status" id="saveStatus">💾 Прогресс сохраняется автоматически</div>
+
+    <div class="footer">EASY SKINS © 2026</div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // --------------------------------------------------------------
+        //  КЕЙСЫ
+        // --------------------------------------------------------------
+        const cases = [
+            { name: "🔫 Дробовики", price: 300 },
+            { name: "🔫 Пистолеты", price: 500 },
+            { name: "🔫 Винтовки", price: 800 },
+            { name: "🔫 AWP-кейс", price: 1200 },
+            { name: "🔫 AK-47 кейс", price: 1500 },
+            { name: "🔫 M4-кейс", price: 1500 },
+            { name: "🔪 Ножи", price: 3000 },
+            { name: "💎 Премиум", price: 5000 }
+        ];
+
+        // --------------------------------------------------------------
+        //  ПРЕДМЕТЫ С ВЕСАМИ
+        // --------------------------------------------------------------
+        const itemsWithWeights = [
+            { name: "MAG-7 | Нейтрализатор", quality: "consumer", value: 20, weight: 9 },
+            { name: "Nova | Лесная сеть", quality: "consumer", value: 22, weight: 9 },
+            { name: "XM1014 | Красное озеро", quality: "consumer", value: 24, weight: 9 },
+            { name: "MAG-7 | Металл", quality: "consumer", value: 26, weight: 9 },
+            { name: "Nova | Яркий цвет", quality: "consumer", value: 28, weight: 9 },
+            { name: "Glock-18 | Городская вспышка", quality: "consumer", value: 30, weight: 9 },
+            { name: "P250 | Лесная сеть", quality: "consumer", value: 32, weight: 9 },
+            { name: "USP-S | Лесная сеть", quality: "consumer", value: 34, weight: 9 },
+            { name: "Desert Eagle | Мечта", quality: "consumer", value: 36, weight: 9 },
+            { name: "Five-SeveN | Берёза", quality: "consumer", value: 38, weight: 9 },
+            { name: "SCAR-20 | Лесная сеть", quality: "consumer", value: 50, weight: 9 },
+            { name: "AUG | Штурм", quality: "consumer", value: 55, weight: 9 },
+            { name: "FAMAS | Гексагон", quality: "consumer", value: 60, weight: 9 },
+            { name: "Galil AR | Оранжевая молния", quality: "consumer", value: 65, weight: 9 },
+            { name: "M4A4 | Грифон", quality: "consumer", value: 70, weight: 9 },
+            { name: "AWP | Паучья сетка", quality: "consumer", value: 250, weight: 9 },
+            { name: "AWP | Черная паутина", quality: "consumer", value: 260, weight: 9 },
+            { name: "AWP | Гексагон", quality: "consumer", value: 270, weight: 9 },
+            { name: "AWP | Светлячок", quality: "consumer", value: 280, weight: 9 },
+            { name: "AWP | Гипербит", quality: "consumer", value: 290, weight: 9 },
+            { name: "XM1014 | Улей", quality: "industrial", value: 60, weight: 7 },
+            { name: "MAG-7 | Светлячок", quality: "industrial", value: 65, weight: 7 },
+            { name: "Nova | Гипербит", quality: "industrial", value: 70, weight: 7 },
+            { name: "XM1014 | Дракон", quality: "industrial", value: 75, weight: 7 },
+            { name: "Glock-18 | Канна", quality: "industrial", value: 80, weight: 7 },
+            { name: "USP-S | Бизон", quality: "industrial", value: 85, weight: 7 },
+            { name: "Desert Eagle | Светлячок", quality: "industrial", value: 90, weight: 7 },
+            { name: "Five-SeveN | Фараон", quality: "industrial", value: 95, weight: 7 },
+            { name: "AK-47 | Голубая плитка", quality: "industrial", value: 140, weight: 7 },
+            { name: "AWP | Паучья сетка", quality: "industrial", value: 150, weight: 7 },
+            { name: "M4A1-S | Кибербезопасность", quality: "industrial", value: 160, weight: 7 },
+            { name: "SCAR-20 | Дракон", quality: "industrial", value: 170, weight: 7 },
+            { name: "AWP | Канна", quality: "industrial", value: 550, weight: 7 },
+            { name: "AWP | Дракон", quality: "industrial", value: 580, weight: 7 },
+            { name: "AWP | Медичи", quality: "industrial", value: 600, weight: 7 },
+            { name: "AWP | Фараон", quality: "industrial", value: 620, weight: 7 },
+            { name: "MAG-7 | Фараон", quality: "mil-spec", value: 180, weight: 5 },
+            { name: "Nova | Канна", quality: "mil-spec", value: 190, weight: 5 },
+            { name: "XM1014 | Огонь и лёд", quality: "mil-spec", value: 200, weight: 5 },
+            { name: "Glock-18 | Огонь и лёд", quality: "mil-spec", value: 320, weight: 5 },
+            { name: "USP-S | Дракон", quality: "mil-spec", value: 340, weight: 5 },
+            { name: "Desert Eagle | Гипербит", quality: "mil-spec", value: 360, weight: 5 },
+            { name: "AUG | Фараон", quality: "mil-spec", value: 480, weight: 5 },
+            { name: "FAMAS | Канна", quality: "mil-spec", value: 500, weight: 5 },
+            { name: "Galil AR | Огонь и лёд", quality: "mil-spec", value: 520, weight: 5 },
+            { name: "AWP | Огонь и лёд", quality: "mil-spec", value: 1200, weight: 5 },
+            { name: "AWP | Золотой дракон", quality: "mil-spec", value: 1250, weight: 5 },
+            { name: "AWP | Супер-легенда", quality: "mil-spec", value: 1300, weight: 5 },
+            { name: "MAG-7 | Золотой дракон", quality: "restricted", value: 450, weight: 4 },
+            { name: "Nova | Супер-легенда", quality: "restricted", value: 480, weight: 4 },
+            { name: "Five-SeveN | Золотой дракон", quality: "restricted", value: 700, weight: 4 },
+            { name: "Glock-18 | Супер-легенда", quality: "restricted", value: 750, weight: 4 },
+            { name: "M4A4 | Золотой дракон", quality: "restricted", value: 1100, weight: 4 },
+            { name: "AK-47 | Супер-легенда", quality: "restricted", value: 1150, weight: 4 },
+            { name: "AWP | Император", quality: "restricted", value: 2800, weight: 4 },
+            { name: "AWP | Космос", quality: "restricted", value: 2900, weight: 4 },
+            { name: "XM1014 | Император", quality: "classified", value: 800, weight: 3 },
+            { name: "USP-S | Император", quality: "classified", value: 1300, weight: 3 },
+            { name: "AWP | Император", quality: "classified", value: 2400, weight: 3 },
+            { name: "M4A4 | Легенда", quality: "classified", value: 8000, weight: 3 },
+            { name: "AWP | Бесконечность", quality: "classified", value: 5000, weight: 3 },
+            { name: "MAG-7 | Космос", quality: "covert", value: 1600, weight: 1 },
+            { name: "Desert Eagle | Космос", quality: "covert", value: 2800, weight: 1 },
+            { name: "M4A1-S | Космос", quality: "covert", value: 4800, weight: 1 },
+            { name: "AWP | Звёздный", quality: "covert", value: 9000, weight: 1 }
+        ];
+
+        let balance = 1000;
+        let currentCaseIndex = -1;
+
+        // ============================================================
+        //  СОХРАНЕНИЕ ПРОГРЕССА (Telegram Cloud Storage)
+        // ============================================================
+        
+        // Ключ для хранения данных
+        const STORAGE_KEY = 'cs2_balance';
+
+        // Загрузка баланса из облака Telegram
+        function loadBalance() {
+            if (!tg.CloudStorage) {
+                // Если CloudStorage не поддерживается — используем localStorage
+                loadBalanceLocal();
+                return;
+            }
+            
+            tg.CloudStorage.getItem(STORAGE_KEY, (err, value) => {
+                if (err) {
+                    console.log('Ошибка загрузки из CloudStorage, используем localStorage:', err);
+                    loadBalanceLocal();
+                    return;
+                }
+                if (value) {
+                    try {
+                        const data = JSON.parse(value);
+                        balance = data.balance || 1000;
+                        document.getElementById('balance').textContent = balance;
+                        document.getElementById('saveStatus').textContent = '✅ Прогресс загружен из облака';
+                        document.getElementById('saveStatus').style.color = '#4caf50';
+                    } catch (e) {
+                        console.log('Ошибка парсинга:', e);
+                    }
+                } else {
+                    // Если данных нет — сохраняем текущий баланс
+                    saveBalance();
+                }
+            });
+        }
+
+        // Загрузка из localStorage (резервный вариант)
+        function loadBalanceLocal() {
+            try {
+                const saved = localStorage.getItem('cs2_balance');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    balance = data.balance || 1000;
+                    document.getElementById('balance').textContent = balance;
+                    document.getElementById('saveStatus').textContent = '💾 Прогресс загружен из кэша';
+                    document.getElementById('saveStatus').style.color = '#888';
+                }
+            } catch (e) {
+                console.log('Ошибка загрузки из localStorage:', e);
+            }
+        }
+
+        // Сохранение баланса в облако Telegram
+        function saveBalance() {
+            const data = JSON.stringify({
+                balance: balance,
+                timestamp: Date.now()
+            });
+            
+            // Сохраняем в localStorage (всегда)
+            try {
+                localStorage.setItem('cs2_balance', data);
+            } catch (e) {
+                console.log('Ошибка сохранения в localStorage:', e);
+            }
+            
+            // Сохраняем в CloudStorage Telegram
+            if (tg.CloudStorage) {
+                tg.CloudStorage.setItem(STORAGE_KEY, data, (err) => {
+                    if (err) {
+                        console.log('Ошибка сохранения в CloudStorage:', err);
+                        document.getElementById('saveStatus').textContent = '⚠️ Прогресс сохранён локально';
+                        document.getElementById('saveStatus').style.color = '#f5a623';
+                    } else {
+                        document.getElementById('saveStatus').textContent = '✅ Прогресс сохранён в облаке';
+                        document.getElementById('saveStatus').style.color = '#4caf50';
+                    }
+                });
+            }
+        }
+
+        // ============================================================
+        //  ОТРИСОВКА КЕЙСОВ
+        // ============================================================
+        function renderCases() {
+            const grid = document.getElementById('caseGrid');
+            grid.innerHTML = '';
+            cases.forEach((c, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'case-btn';
+                btn.innerHTML = `
+                    <div class="name">${c.name}</div>
+                    <div class="price">${c.price} 💰</div>
+                    <div class="rarity-bar"><div class="fill" style="width:${Math.random()*60+20}%"></div></div>
+                `;
+                btn.onclick = () => openCase(i);
+                grid.appendChild(btn);
+            });
+        }
+
+        // ============================================================
+        //  ОТКРЫТИЕ КЕЙСА
+        // ============================================================
+        function openCase(index) {
+            const caseData = cases[index];
+            if (balance < caseData.price) {
+                tg.showAlert(`❌ Не хватает ${caseData.price} монет!`);
+                return;
+            }
+
+            currentCaseIndex = index;
+            balance -= caseData.price;
+            document.getElementById('balance').textContent = balance;
+            saveBalance(); // Сохраняем после списания
+
+            const resultDiv = document.getElementById('result');
+            const itemEl = document.getElementById('resultItem');
+            const qualityEl = document.getElementById('resultQuality');
+            const valueEl = document.getElementById('resultValue');
+            const subEl = document.getElementById('resultSub');
+            const backBtn = document.getElementById('backBtn');
+            
+            resultDiv.style.display = 'block';
+            document.getElementById('caseGrid').style.display = 'none';
+            backBtn.style.display = 'block';
+            
+            itemEl.textContent = '⏳ Открывается...';
+            qualityEl.textContent = '';
+            valueEl.textContent = '';
+            subEl.textContent = '';
+
+            setTimeout(() => {
+                const totalWeight = itemsWithWeights.reduce((sum, item) => sum + item.weight, 0);
+                let random = Math.random() * totalWeight;
+                let dropped = itemsWithWeights[0];
+                
+                for (let item of itemsWithWeights) {
+                    random -= item.weight;
+                    if (random <= 0) {
+                        dropped = item;
+                        break;
+                    }
+                }
+                
+                itemEl.textContent = dropped.name;
+                qualityEl.textContent = dropped.quality.toUpperCase();
+                qualityEl.className = `quality quality-${dropped.quality}`;
+                valueEl.textContent = `💰 ${dropped.value} монет`;
+                subEl.textContent = '✨ предмет добавлен в инвентарь';
+                
+                balance += dropped.value;
+                document.getElementById('balance').textContent = balance;
+                saveBalance(); // Сохраняем после добавления предмета
+            }, 1200);
+        }
+
+        // ============================================================
+        //  НАЗАД К КЕЙСАМ
+        // ============================================================
+        function backToMenu() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('caseGrid').style.display = 'grid';
+            document.getElementById('backBtn').style.display = 'none';
+        }
+
+        // ============================================================
+        //  ЗАПУСК
+        // ============================================================
+        renderCases();
+        
+        // Загружаем сохранённый баланс
+        loadBalance();
+
+        // Сохраняем при закрытии приложения
+        tg.onEvent('viewportChanged', function() {
+            saveBalance();
+        });
+
+        // Сохраняем каждые 30 секунд (на всякий случай)
+        setInterval(saveBalance, 30000);
+    </script>
+</body>
+</html>
