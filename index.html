@@ -229,17 +229,6 @@
             margin: 4px;
         }
 
-        .roulette-item img {
-            width: 100px;
-            height: 75px;
-            object-fit: cover;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            margin-bottom: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
         .roulette-item .rname {
             font-size: 11px;
             white-space: nowrap;
@@ -310,14 +299,6 @@
             gap: 12px;
         }
 
-        .roulette-result .ritem img {
-            width: 56px;
-            height: 42px;
-            object-fit: cover;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
         .roulette-result .rquality {
             font-size: 13px;
             font-weight: 600;
@@ -368,15 +349,6 @@
             padding: 14px 10px;
             text-align: center;
             transition: all 0.2s ease;
-        }
-
-        .inv-item img {
-            width: 80px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .inv-item .iname {
@@ -656,7 +628,7 @@
             </button>
         </div>
         <div style="font-size:13px;color:#666;text-align:center;margin-top:8px;">
-            🔥 Открывай кейсы, собирай скины, выводи скины.
+            🔥 Открывай кейсы, собирай скины, продавай с комиссией 3%
         </div>
     </div>
 
@@ -739,7 +711,6 @@
             <span class="icon">🎒</span>
             <span class="label">Инвентарь</span>
         </button>
-        <!-- Кнопка Админ появится через JS, если пользователь админ -->
     </div>
 
     <div class="save-status" id="saveStatus">💾 Прогресс сохраняется</div>
@@ -787,13 +758,16 @@
         }
 
         // ============================================================
-        //  АДМИН-ID (ЗАМЕНИ НА СВОЙ!)
+        //  АДМИНЫ
         // ============================================================
 
-        const ADMIN_ID = 5131186434; // 👈 ВСТАВЬ СВОЙ TELEGRAM ID
+        const ADMIN_IDS = [
+            5953260376,   // Админ 1
+            5131186434    // Админ 2
+        ];
 
         function isAdmin() {
-            return userId === ADMIN_ID;
+            return ADMIN_IDS.includes(userId);
         }
 
         // ============================================================
@@ -1048,7 +1022,7 @@
             saveData();
             tg.showAlert(`✅ Получено ${status.amount} монет! День ${status.day}`);
         }
-      
+
         // ============================================================
         //  СОХРАНЕНИЕ
         // ============================================================
@@ -1102,7 +1076,7 @@
                 btn.innerHTML = `✅ Бонус получен<div class="sub-text">День ${status.day} — ${status.amount} монет</div>`;
             }
         }
-
+        
         // ============================================================
         //  НАВИГАЦИЯ
         // ============================================================
@@ -1125,6 +1099,21 @@
             document.querySelectorAll('.bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
             const target = document.querySelector(`.bottom-nav .nav-item[data-page="${page}"]`);
             if (target) target.classList.add('active');
+        }
+
+        // ============================================================
+        //  ДОБАВЛЯЕМ КНОПКУ АДМИНА (если пользователь админ)
+        // ============================================================
+
+        function addAdminButton() {
+            if (!isAdmin()) return;
+            const nav = document.getElementById('bottomNav');
+            const btn = document.createElement('button');
+            btn.className = 'nav-item';
+            btn.dataset.page = 'admin';
+            btn.innerHTML = `<span class="icon">🛡️</span><span class="label">Админ</span>`;
+            btn.onclick = () => switchPage('admin');
+            nav.appendChild(btn);
         }
 
         // ============================================================
@@ -1435,21 +1424,6 @@
         }
 
         // ============================================================
-        //  ДОБАВЛЯЕМ КНОПКУ АДМИНА (если пользователь админ)
-        // ============================================================
-
-        function addAdminButton() {
-            if (!isAdmin()) return;
-            const nav = document.getElementById('bottomNav');
-            const btn = document.createElement('button');
-            btn.className = 'nav-item';
-            btn.dataset.page = 'admin';
-            btn.innerHTML = `<span class="icon">🛡️</span><span class="label">Админ</span>`;
-            btn.onclick = () => switchPage('admin');
-            nav.appendChild(btn);
-        }
-
-        // ============================================================
         //  ЗАПУСК
         // ============================================================
 
@@ -1463,5 +1437,4 @@
 </body>
 </html>
 
-      
-                
+            
